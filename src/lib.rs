@@ -20,12 +20,10 @@
 use std::sync::Arc;
 use tokio::net::{UdpSocket, ToSocketAddrs};
 use std::io::{Result, ErrorKind, Error};
-use std::net::SocketAddr;
 use hex::FromHex;
 use crate::model::{ShortQuery, LongQuery, packet};
 use std::time::{SystemTime, UNIX_EPOCH};
 use byteorder::{WriteBytesExt, BigEndian};
-use rand::rngs::ThreadRng;
 use rand::Rng;
 use std::str;
 use std::mem::size_of;
