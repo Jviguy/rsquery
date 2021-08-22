@@ -2,7 +2,11 @@
 name = "rsquery"
 version = "0.1.0"
 edition = "2018"
-
+license = "Apache-2.0"
+keywords = ["minecraft", "mcpe", "query", "raknet", "gamespy"]
+description = "A fast and easy Minecraft query library intented for mcpe."
+repository = "https://github.com/Jviguy/rsquery"
+readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -11,6 +15,3 @@ hex = "0.4.3"
 byteorder = "1.4.3"
 rand = "0.8.4"
 actix-rt = "*"
-
-[package.metadata.docs.rs]
-rustdoc-args = ["--cfg", "docsrs"]
