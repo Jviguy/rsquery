@@ -1,17 +1,24 @@
 #[allow(dead_code)]
+/// LongQuery is a model of data returned by a STAT request
+///
+/// This data includes game_edition to server_unique_id in most implementations.
+///
+/// Depending on the server software gamemode_mode and port information might not be included
+/// which is a Option is wrapped around its type.
+///
 #[derive(Debug)]
 pub struct LongQuery {
-    server_software: String,
-    plugins: String,
-    version: String,
-    whitelist: String,
-    players: Vec<String>,
-    player_count: String,
-    max_players: String,
-    game_name: String,
-    game_mode: String,
-    map_name: String,
-    host_name: String,
-    host_ip: String,
-    host_port: String
+    pub server_software: String,
+    pub plugins: String,
+    pub version: String,
+    pub whitelist: String,
+    pub players: Vec<String>,
+    pub player_count: usize,
+    pub max_players: usize,
+    pub game_name: String,
+    pub game_mode: String,
+    pub map_name: String,
+    pub host_name: String,
+    pub host_ip: String,
+    pub host_port: u16
 }
