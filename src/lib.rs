@@ -21,15 +21,16 @@
 
 use std::sync::Arc;
 use tokio::net::{UdpSocket, ToSocketAddrs};
-use std::io::{Result, ErrorKind, Error, Write};
+use std::io::{Result, ErrorKind, Error, Write, Cursor};
 use hex::FromHex;
 use crate::model::{ShortQuery, LongQuery, packet, RakNetPong};
 use std::time::{SystemTime, UNIX_EPOCH};
-use byteorder::{WriteBytesExt, BigEndian};
+use byteorder::{WriteBytesExt, BigEndian, LittleEndian, ReadBytesExt};
 use rand::Rng;
 use std::str;
 use std::collections::HashMap;
 use tokio::sync::Mutex;
+use crate::utils::read_nulltermed_str;
 
 #[cfg(test)]
 mod tests;
@@ -98,6 +99,8 @@ impl<A: ToSocketAddrs> Client<A> {
     /// A fast and easy query using raknet unconnected ping and pong.
     ///
     /// Uses the locally bound socket (Client.socket) to send a raknet Unconnected_Ping to the given remote.
+    ///
+    /// For information on the data returned view [RakNetPong](crate::model::RakNetPong)
     ///
     /// # [Errors]
     /// - Polling for timeout
@@ -252,6 +255,70 @@ impl<A: ToSocketAddrs> Client<A> {
                 })
             },
             _ => Err(Error::new(ErrorKind::InvalidData, "Unexpected packet was received while awaiting 0x00 STAT"))
+        }
+    }
+
+    /// A slightly faster implementation of the long query found in BASIC STAT for GS3
+    ///
+    /// this function uses the locally bound socket to do a full HANDSHAKE and STAT interaction
+    ///
+    /// This returns data like the player count and gametype
+    ///
+    /// view [ShortQuery](crate::model::ShortQuery) for details
+    ///
+    /// # [Errors]
+    /// - Polling for timeout
+    /// - Invalid Data
+    /// - Connection Failure
+    ///
+    /// # [Example]
+    /// ```no_run
+    /// // Open local binded port and long query the given server address
+    /// let data = Client::new("ip:port").await?.short_query().await?;
+    /// // Prints out the usize using Display trait.
+    /// println!("players: {}", data.players) // EX: players: 2
+    /// ```
+    pub async fn short_query(&self) -> Result<ShortQuery> {
+        let mut random = rand::thread_rng();
+        let ses_id: i32 = random.gen();
+        let challenge_token = self.gen_challenge_token(ses_id).await?;
+        {
+            let mut buf: Vec<u8> = Vec::new();
+            // Write Query Magic
+            buf.write_u16::<BigEndian>(packet::MAGIC)?;
+            // Write STAT for the packet id
+            buf.write_u8(packet::STAT)?;
+            // Write Session Id
+            buf.write_i32::<BigEndian>(ses_id & 0x0F0F0F0F)?;
+            // Write challenge token
+            buf.write_i32::<BigEndian>(challenge_token)?;
+            // Send STAT request to remote
+            self.socket.send_to(buf.as_slice(), &self.remote).await?;
+        };
+        //Reading
+        let mut buf = [0u8; u16::MAX as usize];
+        let len = self.socket.recv(&mut buf).await?;
+        match buf[0] {
+            packet::STAT => {
+                let mut buf = Cursor::new(&buf[5..len]);
+                let motd = read_nulltermed_str(&mut buf).await?;
+                let gametype = read_nulltermed_str(&mut buf).await?;
+                let map = read_nulltermed_str(&mut buf).await?;
+                let players = read_nulltermed_str(&mut buf).await?.parse().unwrap();
+                let max_players = read_nulltermed_str(&mut buf).await?.parse().unwrap();
+                let host_port = buf.read_u16::<LittleEndian>()?;
+                let host_ip = read_nulltermed_str(&mut buf).await?;
+                Ok(ShortQuery {
+                    motd,
+                    gametype,
+                    map,
+                    players,
+                    max_players,
+                    host_port,
+                    host_ip
+                })
+            },
+            _ => Err(Error::new(ErrorKind::InvalidData, "Unexpected packet was received while awaiting 0x00 STAT")),
         }
     }
 
