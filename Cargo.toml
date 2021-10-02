@@ -14,4 +14,3 @@ tokio = {version='1.10.0', features = ['full']}
 hex = "0.4.3"
 byteorder = "1.4.3"
 rand = "0.8.4"
-actix-rt = "2.2.0"

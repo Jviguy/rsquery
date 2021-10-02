@@ -3,16 +3,16 @@ use std::io::Result;
 use tokio::time::Instant;
 use tokio::io::AsyncWriteExt;
 
-#[actix_rt::test]
-async fn short_query() -> Result<()> {
+#[tokio::test]
+async fn raknet_ping() -> Result<()> {
     let client = Client::new("velvetpractice.live:19132").await?;
     let start = Instant::now();
-    let data = client.short_query().await?;
+    let data = client.raknet_ping().await?;
     println!("short finished in {}ms\n{:?}", start.elapsed().as_millis(), data);
     Ok(())
 }
 
-#[actix_rt::test]
+#[tokio::test]
 async fn long_query() -> Result<()> {
     let client = Client::new("velvetpractice.live:19132").await?;
     let start = Instant::now();
@@ -21,7 +21,7 @@ async fn long_query() -> Result<()> {
     Ok(())
 }
 
-#[actix_rt::test]
+#[tokio::test]
 async fn slice_index() -> Result<()> {
     let mut source: Vec<u8> = vec![0x01, 0x02];
     source.write(&crate::packet::PLAYER_KEY).await?;

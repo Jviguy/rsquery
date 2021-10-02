@@ -23,7 +23,7 @@ use std::sync::Arc;
 use tokio::net::{UdpSocket, ToSocketAddrs};
 use std::io::{Result, ErrorKind, Error, Write};
 use hex::FromHex;
-use crate::model::{ShortQuery, LongQuery, packet};
+use crate::model::{ShortQuery, LongQuery, packet, RakNetPong};
 use std::time::{SystemTime, UNIX_EPOCH};
 use byteorder::{WriteBytesExt, BigEndian};
 use rand::Rng;
@@ -111,7 +111,7 @@ impl<A: ToSocketAddrs> Client<A> {
     /// // Prints out the amount of players on that server at the time of querying.
     /// println!("player_count: {}", data.player_count); // EX: player_count: 5
     /// ```
-    pub async fn short_query(&self) -> Result<ShortQuery> {
+    pub async fn raknet_ping(&self) -> Result<RakNetPong> {
         // Writing
         let mut random = rand::thread_rng();
         let offline_msg_data = Vec::from_hex("00ffff00fefefefefdfdfdfd12345678").expect("Failed to read binary string!");
@@ -140,7 +140,7 @@ impl<A: ToSocketAddrs> Client<A> {
             motd.push(data[7].clone());
             gamemode = Some(data[8].clone())
         }
-        Ok(ShortQuery {
+        Ok(RakNetPong {
             game_edition: data[0].clone(),
             motd,
             protocol_version: data[2].parse().unwrap(),
