@@ -4,7 +4,7 @@
 /// This data includes game_edition to server_unique_id in most implementations.
 ///
 /// Depending on the server software gamemode_mode and port information might not be included
-/// which is a Option is wrapped around its type.
+/// which a Option is wrapped around its type.
 ///
 #[derive(Debug)]
 pub struct LongQuery {
