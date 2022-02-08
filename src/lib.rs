@@ -229,9 +229,11 @@ impl<A: ToSocketAddrs> Client<A> {
                 };
                 let b = async || -> Result<()> {
                     if let Some(pi) = player_index {
-                        let tmp = &data[pi+packet::PLAYER_KEY.len()..data.len()-3];
-                        players.lock().await.extend(tmp.split(|byte| byte == &0x00u8)
-                            .map(|arr| str::from_utf8(arr).expect("Failure decoding string!").to_string()));
+                        if pi+packet::PLAYER_KEY.len() < data.len()-3 {
+                            let tmp = &data[pi+packet::PLAYER_KEY.len()..data.len()-3];
+                            players.lock().await.extend(tmp.split(|byte| byte == &0x00u8)
+                                .map(|arr| str::from_utf8(arr).expect("Failure decoding string!").to_string()));
+                        }
                     };
                     Ok(())
                 };
