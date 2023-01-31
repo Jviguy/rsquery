@@ -1,2 +1,2 @@
 # rsquery
-A fast and easy rust minecraft query library
+A fast and easy rust MCBE query library
